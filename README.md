@@ -1,6 +1,6 @@
 <img src="./src/icon.svg" width="100" /><br>
 # tiled_sprite <br>
-Description <br>
+Tiled Sprite, what more is there to say? <br>
 <br>
 Author: skymen <br>
 <sub>Made using [c3ide2-framework](https://github.com/ConstructFund/c3ide2-framework) </sub><br>
