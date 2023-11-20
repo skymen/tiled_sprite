@@ -232,7 +232,7 @@ module.exports = {
         interpolatable: false,
         items: [{ deferred: "Deferred" }, { force: "Force" }],
       },
-      name: "Asset Loading",
+      name: "Asset Loading"
       desc: "Deferred: Will progressively load the textures in memory. This will not pause rendering until it's done but also the textures will be missing until they are loaded. Force: Will load the textures in memory before rendering. This will pause rendering until it's done but also the textures will be available immediately.",
     },
   ],
