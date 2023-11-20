@@ -14,29 +14,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
     }
     return "repeat";
   }
-  // let oldSpriteType = C3.Plugins.Sprite.Type;
-  // let delegate = null;
-  // C3.Plugins.Sprite.Type = class extends oldSpriteType {
-  //   // LoadTextures(renderer) {
-  //   //   return new Promise((resolve, reject) => {
-  //   //     delegate = {
-  //   //       resolve,
-  //   //       reject,
-  //   //     };
-  //   //   });
-  //   // }
 
-  //   LoadTextures(renderer) {
-  //     const opts = {
-  //       sampling: this._runtime.GetSampling(),
-  //       wrapX: "repeat",
-  //       wrapY: "repeat",
-  //     };
-  //     return Promise.all(
-  //       this._animations.map((a) => a.LoadAllTextures(renderer, opts))
-  //     );
-  //   }
-  // };
   return class extends parentClass {
     constructor(inst, properties) {
       super(inst);
@@ -55,6 +33,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this._tileBlendMarginY = 0;
 
       this.isCreatingTextures = false;
+      this._forceAssetLoading = false;
 
       if (
         !C3.Plugins.Sprite ||
@@ -70,23 +49,6 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
         this.Draw(renderer);
       };
 
-      // if (delegate && !this._inst._objectType._skymen_LoadTextures) {
-      //   this._inst._objectType._skymen_LoadTextures = true;
-      //   (async () => {
-      //     const opts = {
-      //       sampling: this._runtime.GetSampling(),
-      //       wrapX: this._wrapHorizontal,
-      //       wrapY: this._wrapVertical,
-      //     };
-      //     let value = await Promise.all(
-      //       this._animations.map((a) => a.LoadAllTextures(renderer, opts))
-      //     );
-      //     if (delegate) delegate.resolve(value);
-      //   })().finally(() => {
-      //     delegate = null;
-      //   });
-      // }
-
       if (properties) {
         this._wrapHorizontal = WrapModeToStr(properties[0]);
         this._wrapVertical = WrapModeToStr(properties[1]);
@@ -101,26 +63,12 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
         this._tileAngleRandom = properties[10];
         this._tileBlendMarginX = properties[11];
         this._tileBlendMarginY = properties[12];
+        this._forceAssetLoading = properties[13] === 1;
       }
     }
 
     Release() {
       super.Release();
-    }
-
-    async LoadTextures(renderer) {
-      const opts = {
-        sampling: this._runtime.GetSampling(),
-        wrapX: this._wrapHorizontal,
-        wrapY: this._wrapVertical,
-      };
-      await Promise.all(
-        this._inst._objectType._animations.map((a) => {
-          a.ReleaseAllTextures();
-          return a.LoadAllTextures(renderer, opts);
-        })
-      );
-      this._inst._objectType._skymen_textures_Loaded = true;
     }
 
     SetTilingShaderProgram(renderer) {
@@ -139,9 +87,62 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       } else renderer.SetTextureFillMode();
     }
 
+    async LoadURL(url, resize, crossOrigin) {
+      const curAnimFrame = this._inst._sdkInst._currentAnimationFrame;
+      const curImageInfo = curAnimFrame.GetImageInfo();
+      const wi = this._inst._sdkInst.GetWorldInfo();
+      const runtime = this._inst._sdkInst._runtime;
+      const sdkType = this._inst._sdkInst._sdkType;
+      if (curImageInfo.GetURL() === url) {
+        if (resize === 0) {
+          wi.SetSize(curImageInfo.GetWidth(), curImageInfo.GetHeight());
+          wi.SetBboxChanged();
+        }
+        this._inst._sdkInst.Trigger(C3.Plugins.Sprite.Cnds.OnURLLoaded);
+        return;
+      }
+      const imageInfo = C3.New(C3.ImageInfo);
+      try {
+        await imageInfo.LoadDynamicAsset(runtime, url);
+        if (!imageInfo.IsLoaded()) throw new Error("image failed to load");
+        if (this._inst._sdkInst.WasReleased()) {
+          imageInfo.Release();
+          return;
+        }
+        await imageInfo.LoadStaticTexture(runtime.GetRenderer(), {
+          sampling: runtime.GetSampling(),
+          wrapX: this._wrapHorizontal,
+          wrapY: this._wrapVertical,
+        });
+      } catch (err) {
+        console.error("Load image from URL failed: ", err);
+        if (!this._inst._sdkInst.WasReleased())
+          this._inst._sdkInst.Trigger(C3.Plugins.Sprite.Cnds.OnURLFailed);
+        return;
+      }
+      if (this._inst._sdkInst.WasReleased()) {
+        imageInfo.Release();
+        return;
+      }
+      curImageInfo.ReplaceWith(imageInfo);
+      sdkType._UpdateAllCurrentTexture();
+      sdkType
+        .GetObjectClass()
+        .Dispatcher()
+        .dispatchEvent(new C3.Event("animationframeimagechange"));
+      runtime.UpdateRender();
+      if (resize === 0) {
+        wi.SetSize(curImageInfo.GetWidth(), curImageInfo.GetHeight());
+        wi.SetBboxChanged();
+      }
+      await this._inst._sdkInst.TriggerAsync(
+        C3.Plugins.Sprite.Cnds.OnURLLoaded
+      );
+    }
+
     async LoadTexture(renderer, imageInfo, opts) {
       let canvas = await imageInfo.ExtractImageToCanvas();
-      let newTexture = renderer.CreateStaticTexture(canvas, opts);
+      let newTexture = await renderer.CreateStaticTextureAsync(canvas, opts);
       this._inst._objectType._skymen_textureData.set(imageInfo, newTexture);
     }
 
@@ -152,12 +153,14 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
         wrapX: this._wrapHorizontal,
         wrapY: this._wrapVertical,
       };
-      debugger;
       for (const a of this._inst._objectType._animations) {
         for (const f of a._frames) {
           let imageInfo = f.GetImageInfo();
           this._inst._objectType._skymen_textureData.set(imageInfo, null);
-          await this.LoadTexture(renderer, imageInfo, opts);
+          let promise = this.LoadTexture(renderer, imageInfo, opts);
+          if (!this._forceAssetLoading) {
+            await promise;
+          }
         }
       }
     }
@@ -264,13 +267,14 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       return this._imageScaleY;
     }
     _SetImageAngle(a) {
+      a = C3.toRadians(a);
       if (this._imageAngle === a) return;
       this._imageAngle = a;
       this._runtime.UpdateRender();
       this._SetMeshChanged();
     }
     _GetImageAngle() {
-      return this._imageAngle;
+      return C3.toDegrees(this._imageAngle);
     }
     _SetTileRandomizationEnabled(e) {
       e = !!e;
@@ -348,8 +352,8 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
             },
             {
               name: "Image Angle",
-              value: C3.toDegrees(this._GetImageAngle()),
-              onedit: (v) => this._SetImageAngle(C3.toRadians(v)),
+              value: this._GetImageAngle(),
+              onedit: (v) => this._SetImageAngle(v),
             },
           ],
         },

@@ -3,7 +3,7 @@ module.exports = {
   addonType: "behavior",
   id: "skymen_tiled_sprite",
   name: "tiled_sprite",
-  version: "1.0.0.0",
+  version: "1.0.0.3",
   category:
     // "attributes",
     // "movements",
@@ -224,11 +224,23 @@ module.exports = {
       name: "Blend Margin Y",
       desc: "Percentage of the tile height that fades to adjacent tiles.",
     },
+    {
+      type: "combo",
+      id: "asset-loading",
+      options: {
+        initialValue: "deferred",
+        interpolatable: false,
+        items: [{ deferred: "Deferred" }, { force: "Force" }],
+      },
+      name: "Asset Loading",
+      desc: "Deferred: Will progressively load the textures in memory. This will not pause rendering until it's done but also the textures will be missing until they are loaded. Force: Will load the textures in memory before rendering. This will pause rendering until it's done but also the textures will be available immediately.",
+    },
   ],
   aceCategories: {
     // follows the format id: langName
     // in the ACEs refer to categories using the id, not the name
-    general: "General",
+    general: "Properties",
+    tile_randomization: "Tile randomization",
   },
   Acts: {
     /*
@@ -322,6 +334,237 @@ module.exports = {
       description: "This is a sample action",
     },
     */
+    // Generate actions for all properties except wrap mode
+    SetImageOffsetX: {
+      category: "general",
+      forward: "_SetImageOffsetX",
+      autoScriptInterface: true,
+      params: [
+        {
+          id: "value",
+          name: "Value",
+          desc: "The new value of the property.",
+          type: "number",
+          value: "0",
+        },
+      ],
+      listName: "Set image offset X",
+      displayText: "{my}: Set image offset X to [i]{0}[/i]",
+      description:
+        "Set the X offset of the image within the object, in pixels.",
+    },
+    SetImageOffsetY: {
+      category: "general",
+      forward: "_SetImageOffsetY",
+      autoScriptInterface: true,
+      params: [
+        {
+          id: "value",
+          name: "Value",
+          desc: "The new value of the property.",
+          type: "number",
+          value: "0",
+        },
+      ],
+      listName: "Set image offset Y",
+      displayText: "{my}: Set image offset Y to [i]{0}[/i]",
+      description:
+        "Set the Y offset of the image within the object, in pixels.",
+    },
+    SetImageScaleX: {
+      category: "general",
+      forward: "_SetImageScaleX",
+      autoScriptInterface: true,
+      params: [
+        {
+          id: "value",
+          name: "Value",
+          desc: "The new value of the property.",
+          type: "number",
+          value: "1",
+        },
+      ],
+      listName: "Set image scale X",
+      displayText: "{my}: Set image scale X to [i]{0}[/i]",
+      description: "Set the X scale of the image within the object.",
+    },
+    SetImageScaleY: {
+      category: "general",
+      forward: "_SetImageScaleY",
+      autoScriptInterface: true,
+      params: [
+        {
+          id: "value",
+          name: "Value",
+          desc: "The new value of the property.",
+          type: "number",
+          value: "1",
+        },
+      ],
+      listName: "Set image scale Y",
+      displayText: "{my}: Set image scale Y to [i]{0}[/i]",
+      description: "Set the Y scale of the image within the object.",
+    },
+    SetImageAngle: {
+      category: "general",
+      forward: "_SetImageAngle",
+      autoScriptInterface: true,
+      params: [
+        {
+          id: "value",
+          name: "Value",
+          desc: "The new value of the property.",
+          type: "number",
+          value: "0",
+        },
+      ],
+      listName: "Set image angle",
+      displayText: "{my}: Set image angle to [i]{0}[/i]",
+      description: "Set the angle of the image within the object, in degrees.",
+    },
+    SetTileRandomizationEnabled: {
+      category: "tile_randomization",
+      forward: "_SetTileRandomizationEnabled",
+      autoScriptInterface: true,
+      params: [
+        {
+          id: "value",
+          name: "Value",
+          desc: "The new value of the property.",
+          type: "boolean",
+          value: "false",
+        },
+      ],
+      listName: "Set tile randomization enabled",
+      displayText: "{my}: Set tile randomization enabled to [i]{0}[/i]",
+      description:
+        "Set whether to enable random offsets and orientations for tiles to break up repetitive patterns.",
+    },
+    SetTileXRandom: {
+      category: "tile_randomization",
+      forward: "_SetTileXRandom",
+      autoScriptInterface: true,
+      params: [
+        {
+          id: "value",
+          name: "Value",
+          desc: "The new value of the property.",
+          type: "number",
+          value: "1",
+        },
+      ],
+      listName: "Set tile X random",
+      displayText: "{my}: Set tile X random to [i]{0}[/i]",
+      description: "Set the amount of horizontal shift randomization.",
+    },
+    SetTileYRandom: {
+      category: "tile_randomization",
+      forward: "_SetTileYRandom",
+      autoScriptInterface: true,
+      params: [
+        {
+          id: "value",
+          name: "Value",
+          desc: "The new value of the property.",
+          type: "number",
+          value: "1",
+        },
+      ],
+      listName: "Set tile Y random",
+      displayText: "{my}: Set tile Y random to [i]{0}[/i]",
+      description: "Set the amount of vertical shift randomization.",
+    },
+    SetTileAngleRandom: {
+      category: "tile_randomization",
+      forward: "_SetTileAngleRandom",
+      autoScriptInterface: true,
+      params: [
+        {
+          id: "value",
+          name: "Value",
+          desc: "The new value of the property.",
+          type: "number",
+          value: "1",
+        },
+      ],
+      listName: "Set tile angle random",
+      displayText: "{my}: Set tile angle random to [i]{0}[/i]",
+      description: "Set the amount of rotation randomization.",
+    },
+    SetTileBlendMarginX: {
+      category: "tile_randomization",
+      forward: "_SetTileBlendMarginX",
+      autoScriptInterface: true,
+      params: [
+        {
+          id: "value",
+          name: "Value",
+          desc: "The new value of the property. Percentage of the tile width that fades to adjacent tiles.",
+          type: "number",
+          value: "0.1",
+        },
+      ],
+      listName: "Set tile blend margin X",
+      displayText: "{my}: Set tile blend margin X to [i]{0}[/i]",
+      description:
+        "Set the percentage of the tile width that fades to adjacent tiles.",
+    },
+    SetTileBlendMarginY: {
+      category: "tile_randomization",
+      forward: "_SetTileBlendMarginY",
+      autoScriptInterface: true,
+      params: [
+        {
+          id: "value",
+          name: "Value",
+          desc: "The new value of the property. Percentage of the tile height that fades to adjacent tiles.",
+          type: "number",
+          value: "0.1",
+        },
+      ],
+      listName: "Set tile blend margin Y",
+      displayText: "{my}: Set tile blend margin Y to [i]{0}[/i]",
+      description:
+        "Set the percentage of the tile height that fades to adjacent tiles.",
+    },
+    LoadURL: {
+      category: "general",
+      forward: "LoadURL",
+      autoScriptInterface: true,
+      isAsync: true,
+      params: [
+        {
+          id: "url",
+          name: "URL",
+          desc: "The URL of the image to load.",
+          type: "string",
+          value: "",
+        },
+        {
+          id: "resize",
+          name: "Resize",
+          desc: "Whether to resize the object to fit the new image.",
+          type: "combo",
+          value: "resize",
+          items: [
+            { resize: "Resize to image size" },
+            { no_resize: "Keep current size" },
+          ],
+        },
+        {
+          id: "cross-origin",
+          name: "Cross-origin",
+          desc: "Whether to request the image with cross-origin enabled.",
+          type: "combo",
+          value: "anonymous",
+          items: [{ anonymous: "Anonymous" }, { none: "None" }],
+        },
+      ],
+      listName: "Load image from URL",
+      displayText:
+        "{my}: Load image from URL [i]{0}[/i] (resize to [i]{1}[/i], cross-origin [i]{2}[/i]))",
+      description: "Load an image from a URL.",
+    },
   },
   Cnds: {
     /*
@@ -420,6 +663,16 @@ module.exports = {
       description: "This is a sample condition",
     },
     */
+    IsTileRandomizationEnabled: {
+      category: "tile_randomization",
+      forward: "_IsTileRandomizationEnabled",
+      autoScriptInterface: true,
+      params: [],
+      listName: "Is tile randomization enabled",
+      displayText: "{my}: Is tile randomization enabled",
+      description:
+        "Whether random offsets and orientations for tiles are enabled.",
+    },
   },
   Exps: {
     /*
@@ -479,5 +732,98 @@ module.exports = {
       description: "This is a sample expression",
     },
     */
+    ImageOffsetX: {
+      category: "general",
+      forward: "_GetImageOffsetX",
+      autoScriptInterface: true,
+      returnType: "number",
+      params: [],
+      description: "The X offset of the image within the object, in pixels.",
+    },
+    ImageOffsetY: {
+      category: "general",
+      forward: "_GetImageOffsetY",
+      autoScriptInterface: true,
+      returnType: "number",
+      params: [],
+      description: "The Y offset of the image within the object, in pixels.",
+    },
+    ImageScaleX: {
+      category: "general",
+      forward: "_GetImageScaleX",
+      autoScriptInterface: true,
+      returnType: "number",
+      params: [],
+      description: "The X scale of the image within the object.",
+    },
+    ImageScaleY: {
+      category: "general",
+      forward: "_GetImageScaleY",
+      autoScriptInterface: true,
+      returnType: "number",
+      params: [],
+      description: "The Y scale of the image within the object.",
+    },
+    ImageAngle: {
+      category: "general",
+      forward: "_GetImageAngle",
+      autoScriptInterface: true,
+      returnType: "number",
+      params: [],
+      description: "The angle of the image within the object, in degrees.",
+    },
+    IsTileRandomizationEnabled: {
+      category: "tile_randomization",
+      handler: `function () {
+        return this._enableTileRandomization?1:0;
+      }`,
+      autoScriptInterface: false,
+      returnType: "number",
+      params: [],
+      description:
+        "Whether random offsets and orientations for tiles are enabled.",
+    },
+    TileXRandom: {
+      category: "tile_randomization",
+      forward: "_GetTileXRandom",
+      autoScriptInterface: true,
+      returnType: "number",
+      params: [],
+      description: "The amount of horizontal shift randomization.",
+    },
+    TileYRandom: {
+      category: "tile_randomization",
+      forward: "_GetTileYRandom",
+      autoScriptInterface: true,
+      returnType: "number",
+      params: [],
+      description: "The amount of vertical shift randomization.",
+    },
+    TileAngleRandom: {
+      category: "tile_randomization",
+      forward: "_GetTileAngleRandom",
+      autoScriptInterface: true,
+      returnType: "number",
+      params: [],
+      description: "The amount of rotation randomization.",
+    },
+    TileBlendMarginX: {
+      category: "tile_randomization",
+      forward: "_GetTileBlendMarginX",
+      autoScriptInterface: true,
+      returnType: "number",
+      params: [],
+      description:
+        "The percentage of the tile width that fades to adjacent tiles.",
+    },
+    TileBlendMarginY: {
+      category: "tile_randomization",
+      forward: "_GetTileBlendMarginY",
+      autoScriptInterface: true,
+      returnType: "number",
+      params: [],
+      description:
+        "The percentage of the tile height that fades to adjacent tiles.",
+    },
   },
 };
