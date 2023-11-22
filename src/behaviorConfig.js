@@ -3,7 +3,7 @@ module.exports = {
   addonType: "behavior",
   id: "skymen_tiled_sprite",
   name: "tiled_sprite",
-  version: "1.0.0.4",
+  version: "1.0.0.5",
   category:
     // "attributes",
     // "movements",

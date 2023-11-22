@@ -144,6 +144,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       let canvas = await imageInfo.ExtractImageToCanvas();
       let newTexture = await renderer.CreateStaticTextureAsync(canvas, opts);
       this._inst._objectType._skymen_textureData.set(imageInfo, newTexture);
+      this._runtime.UpdateRender();
     }
 
     async CreateAllTextures(renderer) {
