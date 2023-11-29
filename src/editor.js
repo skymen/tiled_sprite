@@ -69,9 +69,7 @@ B_C.Instance = class extends SDK.IBehaviorInstanceBase {
 
   OnCreate() {}
 
-  OnPropertyChanged(id, value) {
-    debugger;
-  }
+  OnPropertyChanged(id, value) {}
 
   LoadC2Property(name, valueString) {
     return false; // not handled
